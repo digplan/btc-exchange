@@ -1,0 +1,71 @@
+<script src="//dpsw.info/enigmatic.js"></script><link rel='stylesheet' href='css.css'>
+
+<div id='book' class='thirty roboto center five' hidden>
+    <div class='thirty bids left'>
+        {{#buys}}
+        <span class='twenty navy'>{{size}}</span>
+        <span onclick='prepOrder("Sell", this.innerText)'>{{price}}</span>
+        <br>
+        {{/buys}}
+    </div>
+
+    <div class='thirty asks left'>
+        {{#sells}}
+        <span onclick='prepOrder("Buy", this.innerText)'>{{price}}</span>
+        <span class='twenty navy'>{{size}}</span>
+        <br>
+        {{/sells}}
+    </div>
+</div>
+
+<div id='openorders' class='clear' hidden>
+  {{#buys}}
+    <span class='twenty navy'>{{orderid}} {{size}} {{price}} cancel</span>
+    <br>
+  {{/buys}}
+</div>
+
+<div class='clear'>
+    <fieldset id='order_entry' class='five center'>
+        <select id='type'>
+            <option>Buy</option>
+            <option>Sell</option>
+        </select>Price
+        <input id='price'></input>Size
+        <input id='size'></input>
+        <button onclick='sendOrder()'>Order</button>
+    </fieldset>
+</div>
+
+
+<script>
+
+var user = 'admin';
+
+function ready(){
+  $('#book').render('/api/book');
+  $('#openorders').render('/api/orders');
+}
+
+function prepOrder(type, price) {
+  $("#price").value = price;
+  $("#type").value = type;
+}
+
+function sendOrder() {
+    var size = $("#size").value,
+        price = $("#price").value,
+        type = $("#type").value;
+    get(['/api', type, user, size, price].join('/'));
+}
+
+var e = new EventSource('/feed');
+e.onmessage = function(m) {
+  var msg = JSON.parse(m.data);
+  console.log(msg);
+  if (msg.book)
+    $('#book').render(msg.book);
+  if (msg.orders)
+    $('#openorders').render(msg.orders);
+}
+</script>
